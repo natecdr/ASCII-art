@@ -1,4 +1,5 @@
 from image_blackandwhiter import to_bw
+import matplotlib.image as img
 import numpy as np
 import time
 import cv2
@@ -6,7 +7,7 @@ import os
 
 """ Draws an image/frame as ASCII art in terminal """
 def draw_art(image, chars):
-    bw_image, width, height= to_bw(image, 150)
+    bw_image, width, height= to_bw(image, 100)
 
     line = ""
     for i in range(height):
@@ -43,6 +44,6 @@ def draw_image(chars):
 
 if __name__ == "__main__":
     chars = [' ','.','-',':','=','+','*','#','%','@']
-    #draw_webcam(chars)
+    draw_webcam(chars)
     #draw_video(chars)
     #draw_image(chars)
