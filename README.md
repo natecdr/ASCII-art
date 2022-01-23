@@ -18,3 +18,10 @@ From a video file :
 
 From your webcam :
 `python ascii_art.py img cam width height`
+
+## Results 
+Here is an example of an image converted to ASCII art using this tool :
+
+<p align="center">
+	<img src="https://i.ibb.co/1ZP1WRf/ascii-art.png" alt="ascii-art" border="0">
+</p>
