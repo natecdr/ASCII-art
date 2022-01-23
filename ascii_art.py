@@ -1,49 +1,92 @@
-from image_blackandwhiter import to_bw
-import matplotlib.image as img
+from turtle import resetscreen
 import numpy as np
-import time
 import cv2
-import os
+import argparse
+import matplotlib.pyplot as plt
 
 """ Draws an image/frame as ASCII art in terminal """
-def draw_art(image, chars):
-    bw_image, width, height= to_bw(image, 100)
-
+def draw_art(image, width, height):
+    chars =  ".:-=+*#%@"
+    bw_image = preprocess(image, width, height, chars)
+    
     line = ""
     for i in range(height):
         for j in range(width):
-            line += chars[int(np.floor(bw_image[i][j]/26))]
+            line += chars[bw_image[i][j]]
         line += "\n"
     print(line)
 
 """ Webcam video input as ASCII art """
-def draw_webcam(chars):
+def convert_webcam(width, height):
     vc = cv2.VideoCapture(0)
 
     if vc.isOpened():
         rval, frame = vc.read()
 
     while rval:
-        draw_art(frame, chars)
+        draw_art(frame, width, height)
         rval, frame = vc.read()
         key = cv2.waitKey(20)
 
 """ Video file input as ASCII art """
-def draw_video(chars):
-    vidcap = cv2.VideoCapture('big_buck_bunny_720p_5mb.mp4')
-    success,image = vidcap.read()
-    while success:
-        draw_art(image, chars)
+def convert_video(file, width, height):
+    vidcap = cv2.VideoCapture(file, 0)
+
+    if vidcap.isOpened():
         success,image = vidcap.read()
 
+    while success:
+        draw_art(image, width, height)
+        success,image = vidcap.read()
+        key = cv2.waitKey(20)
+
 """ Image file input as ASCII art """
-def draw_image(chars):
-    image= img.imread('portrait.jpeg')
-    draw_art(image, chars)
+def convert_image(file, width, height):
+    image = cv2.imread(file, 0)
+    draw_art(image, width, height)
+
+"""Image preprocessing"""
+def preprocess(image, width, height, chars):
+    res = cv2.resize(image, (width, height))
+    if len(res.shape) > 2:
+        res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+    res = res/256 * len(chars)
+    return res.astype(int)
+
+
+def init_parser():
+    parser = argparse.ArgumentParser(description="Image to ASCII Art converter")
+    parser.add_argument("type", metavar="{img, video}", type=str, help = "Type of input")
+    parser.add_argument("source", metavar = "src", type=str, help = "Source image or video, 'cam' to have your webcam as the source")
+    parser.add_argument("width", metavar = "width", type=int, help = "Width of output ASCII image")
+    parser.add_argument("height", metavar = "height", type=int, help = "Height of output ASCII image")
+    return parser
 
 
 if __name__ == "__main__":
-    chars = [' ','.','-',':','=','+','*','#','%','@']
-    draw_webcam(chars)
-    #draw_video(chars)
-    #draw_image(chars)
+    parser = init_parser()
+    args = parser.parse_args()
+    width = args.width
+    height = int(args.height / 2) #Text output is of height 2 and width 1
+
+    if args.type == "img":
+        try: 
+            source_file = args.source
+            convert_image(source_file, width, height)
+        except Exception as e:
+            print(str(e))
+            print("There was an error, check that the file exists.")
+            
+    elif args.type == "video":
+        try:
+            if args.source == "cam":
+                convert_webcam(width, height)
+            else:
+                source_file = args.source
+                convert_video(source_file, width, height)
+        except Exception as e:
+            print(str(e))
+            print("There was an error, check that the file exists or if your webcam works properly.")
+        
+    else:
+        print("Invalid argument for type")
